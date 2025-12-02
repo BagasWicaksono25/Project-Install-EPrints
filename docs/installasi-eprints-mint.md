@@ -206,28 +206,142 @@ Kemudian dibawahnya lagi tambahkan:
 ```bash
 ServerName localhost
 ```
-kemudian tekan CTRL + O, untuk save perubahan tekan ENTER, dan untuk keluar dari nano tekan CTRL + X
+kemudian tekan Ctrl + O, untuk save perubahan tekan Enter, dan untuk keluar dari nano tekan Ctrl + X
 
 ### 8.2 Generate Konfigurasi Apache:
 ```bash
 sudo su - eprints
 cd /opt/eprints3
-./bin/generate_apacheconf
+./bin/generate_apacheconf Eprints1
 ```
-> ** Troubleshooting:** Jika muncul ```No files were changed.``` maka exit dahulu dan ketik syntax berikut untuk menyalin apache.conf ke Apache:
+Jika muncul syntax seperti ini generate konfigurasi berarti berhasil
+```bash
+/opt/eprints3/cfg/apache/Eprints1.conf
+```
+
+> ** Troubleshooting:** Jika muncul ```No files were changed.``` dan tidak ada Eprints1.conf, maka ketik syntax berikut untuk memaksa EPrints menulis ulang apache.conf:
 > ```bash
-> sudo cp /opt/eprints3/cfg/apache.conf /etc/apache2/sites-available/eprints.conf
+> ./bin/generate_apacheconf --replace Eprints1
 > ```
 
-### 8.3 Restart
+### 8.3 Aktifkan Apache
+pertama pastikan sudah ```exit``` lalu salin file ke folder sites-available dengan mengetik:
+```bash
+sudo cp /opt/eprints3/cfg/apache/Eprints1.conf /etc/apache2/sites-available/eprints.conf
+```
+Terakhir aktifkan site dan restart apache dengan syntax:
+```bash
+sudo a2ensite eprints.conf
+sudo systemctl restart apache2
+```
+kemudian jika ingin mengecek status apache gunakan:
+```bash
+sudo systemctl status apache2
+```
 
 ## 9. Testing EPrints
 
-Setelah konfigurasi apache selesai, EPrints sudah terinstal dan terkonfigurasi dengan benar. Akses repositori anda dengan membuka browser dan navigate ke:
-```
+Setelah konfigurasi apache selesai, Coba akses repositori anda dengan membuka browser dan navigate ke:
+```bash
 http://eprints.local
 ```
-nama ```eprints.local``` disesuaikan dengan nama yang anda buat saat mengisi "**Hostname**" Konfigurasi Wiard
+Testing berhasil jika sudah tampil seperti berikut:
+<img width="1366" height="728" alt="EPrints Done" src="https://github.com/user-attachments/assets/aca09afd-f487-4b60-8faa-9b8e7967e08b" />
+
+> [!NOTE]
+> Klik Ctrl + Shift + R jika ingin membersihkan cache browser dan melakukan reload page
+> 
+> Nama ```eprints.local``` disesuaikan dengan nama yang anda buat saat mengisi "**Hostname**" Konfigurasi Wiard
+
+## Troubleshooting 1: Error Database
+```bash
+Error connecting to database: Access denied for user 'www-data'@'localhost'
+```
+Cara mengatasinya:
+### 1. Cek User Database yang Seharusnya Dipakai
+```bash
+sudo mysql -u root -p
+```
+```sql
+CREATE USER IF NOT EXISTS 'Eprints1'@'localhost' IDENTIFIED BY 'eprints123';
+GRANT ALL PRIVILEGES ON Eprints1.* TO 'Eprints1'@'localhost';
+FLUSH PRIVILEGES;
+EXIT;
+```
+### 2.Edit File Konfigurasi ```database.pl```
+```bash
+sudo nano /opt/eprints3/archives/Eprints1/cfg/cfg.d/database.pl
+```
+Sesuaikan isinya dengan yang sudah anda input pada konfigurasi wiard, contoh:
+```bash
+$c->{dbname} = 'Eprints1';
+$c->{dbhost} = 'localhost';
+$c->{dbport} = undef;
+$c->{dbsock} = undef;
+$c->{dbuser} = 'Eprints1';
+$c->{dbpass} = 'eprints123';
+$c->{dbengine} = 'InnoDB';
+```
+### 3. Perbaiki Permission File
+```bash
+sudo chown eprints:eprints /opt/eprints3/archives/Eprints1/cfg/cfg.d/database.pl
+sudo chmod 640 /opt/eprints3/archives/Eprints1/cfg/cfg.d/database.pl
+```
+### 4.Generate Ulang File Apache untuk EPrints
+```bash
+sudo su - eprints
+cd /opt/eprints3
+./bin/generate_apacheconf --replace Eprints1
+exit
+```
+### 5. Copy Konfigurasi Apache ke System
+```bash
+sudo cp /opt/eprints3/cfg/apache/Eprints1.conf /etc/apache2/sites-available/eprints.conf
+```
+Lalu enable:
+```bash
+sudo a2ensite eprints.conf
+sudo systemctl reload apache2
+```
+### 6. Restart Apache
+```bash
+sudo systemctl restart apache2
+```
+### 7. Test Akses Browser
+```bash
+http://eprints.local
+```
+
+## Troubleshooting 2: Link Mengalami Error
+```bash
+Can't write to /opt/eprints3/archives/Eprints1/html/en//javascript/auto.js: Permission denied
+```
+Cara mengatasinya yaitu:
+### 1.Pastikan semua folder dan file di archive Eprints1 dimiliki oleh user eprints dan group www-data, supaya Apache bisa menulis
+```bash
+sudo chown -R eprints:www-data /opt/eprints3/archives/Eprints1
+```
+### 2. Berikan permission folder writable untuk owner dan group
+```bash
+sudo find /opt/eprints3/archives/Eprints1 -type d -exec chmod 775 {} \;
+```
+### 3. Berikan permission file writable untuk owner dan group
+```bash
+sudo find /opt/eprints3/archives/Eprints1 -type f -exec chmod 664 {} \;
+```
+### 4. Restart kembali apache:
+```bash
+sudo systemctl restart apache2
+```
+### 5. Coba Buka Kembali EPrints
+```bash
+http://eprints.local
+```
+### 6. Bersihkan cache browser dan reload
+```bash
+Ctrl + Shift + R
+```
+
 ## Troubleshooting Umum
 
 | Masalah | Solusi |
