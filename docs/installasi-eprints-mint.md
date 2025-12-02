@@ -112,11 +112,9 @@ ls -la /opt/eprints3/bin/
 
 Cari file `epadmin` dalam list
 
-## 6. Konfigurasi MariaDB/MySQL
+## 6. Setup Password Root MariaDB/MySQL
 
-### 6.1 Setup Password Root MySQL
-
-Masuk ke MySQL:
+### 6.1 Masuk ke MySQL
 ```bash
 mysql
 ```
@@ -167,16 +165,16 @@ Ikuti prompt wizard dengan nilai-nilai berikut:
 | Alias? | *[Tekan Enter]* |
 | Path? | `/` |
 | HTTPS Hostname? | *[Tekan Enter]* |
-| Administrator Email? | `wicaksonob208@gmail.com` *(gunakan email Anda)* |
+| Administrator Email? | `wicaksonob208@gmail.com` *(Gunakan Email Anda)* |
 | Archive Name? | `Test Repository` |
 | Organisation Name? | `UIN Jakarta` |
 | Configure database? | `yes` |
 | Database Name? | `Eprints1` |
 | MySQL Host? | `localhost` |
-| MySQL Port? | `#` *(untuk no setting)* |
-| MySQL Socket? | `#` *(untuk no setting)* |
+| MySQL Port? | `#` *(Untuk No Setting)* |
+| MySQL Socket? | `#` *(Untuk No Setting)* |
 | Database User? | `Eprints1` |
-| Database Password? | *[Masukkan password]* |
+| Database Password? | *[Masukkan Password]* |
 | Database Engine? | `InnoDB` |
 | Write these database settings? | `yes` |
 | Create database 'Eprints1'? | `yes` |
@@ -186,19 +184,50 @@ Ikuti prompt wizard dengan nilai-nilai berikut:
 | Create an initial user? | `yes` |
 | Enter a username? | `bagas` |
 | Select a user type? | `admin` |
-| Enter Password? | *[Buat password admin]* |
-| Email? | `wicaksonob208@gmail.com` *(gunakan email Anda)* |
+| Enter Password? | *[Buat Password Admin]* |
+| Email? | `wicaksonob208@gmail.com` *(Gunakan Email Anda)* |
 | Build static web pages? | `yes` |
 | Import LOC subjects and sample divisions? | `yes` |
 | Update Apache config files? | `yes` |
 
-## 8. Setelah Instalasi
+## 8.Konfigurasi Apache
+### 8.1 Konfigurasi Nano Apache
+```bash
+sudo nano /etc/apache2/apache2.conf
+```
+Tambahkan syntax berikut pada baris terakhir:
+```bash
+Include /opt/eprints3/cfg/apache.conf
+```
+> [!NOTE]
+> Pastikan tidak ada ```#``` di depan syntax ```Include /opt/eprints3/cfg/apache.conf```
 
-Setelah wizard selesai, EPrints sudah terinstal dan terkonfigurasi. Akses repository Anda dengan membuka browser dan navigate ke:
+Kemudian dibawahnya lagi tambahkan:
+```bash
+ServerName localhost
+```
+kemudian tekan CTRL + O, untuk save perubahan tekan ENTER, dan untuk keluar dari nano tekan CTRL + X
+
+### 8.2 Generate Konfigurasi Apache:
+```bash
+sudo su - eprints
+cd /opt/eprints3
+./bin/generate_apacheconf
+```
+> ** Troubleshooting:** Jika muncul ```No files were changed.``` maka exit dahulu dan ketik syntax berikut untuk menyalin apache.conf ke Apache:
+> ```bash
+> sudo cp /opt/eprints3/cfg/apache.conf /etc/apache2/sites-available/eprints.conf
+> ```
+
+### 8.3 Restart
+
+## 9. Testing EPrints
+
+Setelah konfigurasi apache selesai, EPrints sudah terinstal dan terkonfigurasi dengan benar. Akses repositori anda dengan membuka browser dan navigate ke:
 ```
 http://eprints.local
 ```
-
+nama ```eprints.local``` disesuaikan dengan nama yang anda buat saat mengisi "**Hostname**" Konfigurasi Wiard
 ## Troubleshooting Umum
 
 | Masalah | Solusi |
