@@ -90,7 +90,7 @@ cd eprints3
 
 ### 5.1 Buat User Sistem EPrints
 ```bash
-sudo useradd -r -m -d /opt/eprints3 eprints
+sudo useradd -r -d /opt/eprints3 eprints
 ```
 
 ### 5.2 Set Ownership Direktori
@@ -107,10 +107,8 @@ Pastikan owner berubah dari `root root` menjadi `eprints eprints`
 
 ### 5.4 Verifikasi Binary epadmin Ada
 ```bash
-ls -la /opt/eprints3/bin/
+ls -la /opt/eprints3/bin/ | grep epadmin
 ```
-
-Cari file `epadmin` dalam list
 
 ## 6. Setup Password Root MariaDB/MySQL
 
